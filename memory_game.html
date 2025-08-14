@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Memory Game</title>
+<style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background-color: #fef9f6;
+        text-align: center;
+        padding: 20px;
+    }
+    h1 {
+        color: #b56576;
+    }
+    #secretPrompt, #gameBoard, #finalMessage {
+        margin-top: 20px;
+    }
+    #gameBoard {
+        display: grid;
+        grid-template-columns: repeat(4, 100px);
+        grid-gap: 10px;
+        justify-content: center;
+        margin: auto;
+        max-width: 450px;
+    }
+    .card {
+        width: 100px;
+        height: 100px;
+        perspective: 1000px;
+    }
+    .card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+        cursor: pointer;
+    }
+    .card.flipped .card-inner {
+        transform: rotateY(180deg);
+    }
+    .card-front, .card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .card-front {
+        background: #ffe5ec;
+    }
+    .card-back {
+        transform: rotateY(180deg);
+        background-size: cover;
+        background-position: center;
+    }
+    #finalMessage {
+        display: none;
+        font-size: 1.2em;
+        background: #fff0f3;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 30px;
+    }
+</style>
+</head>
+<body>
+
+<h1>💌 Our First Year 💌</h1>
+
+<div id="secretPrompt">
+    <p>Enter the secret word to unlock the memory game:</p>
+    <input type="text" id="secretInput">
+    <button onclick="checkSecret()">Unlock</button>
+</div>
+
+<div id="gameBoard" style="display:none;"></div>
+
+<div id="finalMessage">
+    <p><em>No great mind has ever existed without a touch of madness.<br>(Congratulations on reaching the end &lt;3)</em></p>
+</div>
+
+<script>
+const secretWord = "philosophy";
+const images = [
+    "myoxytocin/Match1_image1.png", "myoxytocin/Match1_image2.png",
+    "myoxytocin/Match2_image1.png", "myoxytocin/Match2_image2.png",
+    "myoxytocin/Match3_image1.png", "myoxytocin/Match3_image2.png",
+    "myoxytocin/Match4_image1.png", "myoxytocin/Match4_image2.png",
+    "myoxytocin/Match5_image1.png", "myoxytocin/Match5_image2.png",
+    "myoxytocin/Match6_image1.png", "myoxytocin/Match6_image2.png",
+    "myoxytocin/Match7_image1.png", "myoxytocin/Match7_image2.png",
+    "myoxytocin/Match8_image1.png", "myoxytocin/Match8_image2.png"
+];
+
+function checkSecret(){
+    const input = document.getElementById("secretInput").value.trim().toLowerCase();
+    if(input === secretWord){
+        document.getElementById("secretPrompt").style.display = "none";
+        document.getElementById("gameBoard").style.display = "grid";
+        startGame();
+    } else {
+        alert("That’s not the secret word!");
+    }
+}
+
+let firstCard = null;
+let lockBoard = false;
+let matchedPairs = 0;
+
+function startGame(){
+    const shuffled = [...images].sort(() => Math.random() - 0.5);
+    const board = document.getElementById("gameBoard");
+    board.innerHTML = "";
+
+    shuffled.forEach(img => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+
+        const inner = document.createElement("div");
+        inner.classList.add("card-inner");
+
+        const front = document.createElement("div");
+        front.classList.add("card-front");
+
+        const back = document.createElement("div");
+        back.classList.add("card-back");
+        back.style.backgroundImage = `url('${img}')`;
+
+        inner.appendChild(front);
+        inner.appendChild(back);
+        card.appendChild(inner);
+
+        card.addEventListener("click", () => flipCard(card, img));
+
+        board.appendChild(card);
+    });
+}
+
+function flipCard(card, img){
+    if(lockBoard || card.classList.contains("flipped")) return;
+
+    card.classList.add("flipped");
+
+    if(!firstCard){
+        firstCard = { card, img };
+        return;
+    }
+
+    if(firstCard.img.split("_")[0] === img.split("_")[0]){
+        matchedPairs++;
+        firstCard = null;
+        if(matchedPairs === images.length / 2){
+            document.getElementById("finalMessage").style.display = "block";
+        }
+    } else {
+        lockBoard = true;
+        setTimeout(() => {
+            card.classList.remove("flipped");
+            firstCard.card.classList.remove("flipped");
+            firstCard = null;
+            lockBoard = false;
+        }, 1000);
+    }
+}
+</script>
+
+</body>
+</html>
